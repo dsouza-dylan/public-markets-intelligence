@@ -37,3 +37,23 @@ jobs:
         run: |
           cd vc_dbt
           dbt run --profiles-dir ../deploy --project-dir .
+
+      - name: Log pipeline run
+        env:
+          MOTHERDUCK_TOKEN: ${{ secrets.MOTHERDUCK_TOKEN }}
+        run: |
+          python - <<'EOF'
+          import duckdb, os
+          from datetime import datetime, timezone
+          token = os.environ["MOTHERDUCK_TOKEN"]
+          con = duckdb.connect(f"md:vc_pipeline?motherduck_token={token}")
+          con.execute("CREATE SCHEMA IF NOT EXISTS pipeline_metadata")
+          con.execute("""
+              CREATE TABLE IF NOT EXISTS pipeline_metadata.runs (
+                  run_at TIMESTAMP, status VARCHAR, rows_loaded INTEGER
+              )
+          """)
+          con.execute(f"INSERT INTO pipeline_metadata.runs VALUES ('{datetime.now(timezone.utc)}', 'success', NULL)")
+          con.close()
+          print("Run logged")
+          EOF

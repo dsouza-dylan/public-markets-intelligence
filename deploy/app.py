@@ -71,16 +71,18 @@ try:
 except Exception:
     last_run_str, total_rows = None, None
 
-if last_run_str:
-    st.sidebar.metric("Last Run", last_run_str)
-    st.sidebar.metric("Rows Loaded", f"{int(total_rows):,}" if total_rows else "—")
-else:
-    st.sidebar.metric("Last Run", "Never")
-    st.sidebar.info(
-        "**Why Never?**\n\n"
-        "This updates when the pipeline runs through Airflow. "
-        "If you ran `ingest_sec.py` or `ingest_market_cap.py` manually, it won't be recorded here."
-    )
+st.sidebar.metric("Last Run", last_run_str if last_run_str else "Pending")
+if total_rows:
+    st.sidebar.metric("Rows Loaded", f"{int(total_rows):,}")
+
+st.sidebar.divider()
+st.sidebar.caption(
+    "**Cloud pipeline**\n\n"
+    "GitHub Actions → MotherDuck → dbt → Streamlit. "
+    "Runs every Monday at 8am UTC automatically.\n\n"
+    "**Local pipeline**\n\n"
+    "DuckDB + Apache Airflow mirror the same flow for local development."
+)
 
 try:
     sec_count = con.execute("SELECT COUNT(DISTINCT ticker) FROM main.stg_sec_financials").fetchone()[0]
