@@ -1,6 +1,6 @@
 # 📈 Public Markets Intelligence
 
-A live financial comps pipeline pulling SEC EDGAR filings for 55 large-cap public companies. Computes annual and LTM (Last Twelve Months) revenue, margins, and valuation multiples — refreshed weekly and served via a Streamlit dashboard.
+A live financial comps pipeline pulling SEC EDGAR filings for 41 large-cap public companies. Computes annual and LTM (Last Twelve Months) revenue, margins, and valuation multiples — refreshed weekly and served via a Streamlit dashboard.
 
 ## ✨ Features
 
