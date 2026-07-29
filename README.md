@@ -1,107 +1,66 @@
-# Public Markets Intelligence Pipeline
+# 📈 Public Markets Intelligence
 
-A data engineering pipeline that ingests live SEC EDGAR filings and surfaces annual and LTM (Last Twelve Months) financial comps for 20 large-cap public companies via a Streamlit dashboard.
+A live financial comps pipeline pulling SEC EDGAR filings for 55 large-cap public companies. Computes annual and LTM (Last Twelve Months) revenue, margins, and valuation multiples — refreshed weekly and served via a Streamlit dashboard.
 
-## Architecture
+## ✨ Features
 
-```
-SEC EDGAR API
-     │
-     ▼
-ingest_sec.py          ← pulls 10-K (annual) + 10-Q (quarterly YTD) via XBRL API
-     │
-     ▼
-DuckDB (raw schema)
-  raw.sec_financials
-  raw.sec_quarterly
-     │
-     ▼
-dbt (vc_dbt)
-  staging/
-    stg_sec_financials   ← clean annual metrics + derived margins
-    stg_sec_quarterly    ← clean quarterly YTD metrics
-  marts/
-    mart_public_company_comps   ← annual comps with YoY growth + sector percentiles
-    mart_ltm_comps              ← LTM = Annual + Current YTD − Prior Year YTD
-     │
-     ▼
-Streamlit + Plotly (app.py)
-  Tab 1: Annual Comps
-  Tab 2: LTM Comps
-     │
-     ▼
-Airflow (Docker)        ← orchestrates ingest → dbt on a weekly schedule
-```
+- Annual comps with YoY revenue growth and within-sector percentile rankings
+- LTM comps using the standard investment banking formula: Most Recent Annual + Current YTD − Prior Year Same Period YTD
+- Valuation multiples — P/E and Price/Revenue — pulled live from Yahoo Finance
+- Sector filtering, company deep-dive view, and company logos
 
-## Tech Stack
+## 📊 Data
 
-| Layer | Tool |
-|---|---|
-| Ingestion | Python + requests (SEC EDGAR XBRL API) |
-| Warehouse | DuckDB |
-| Transformation | dbt Core + dbt-duckdb |
-| Orchestration | Apache Airflow (Docker Compose) |
-| Frontend | Streamlit + Plotly |
+- **SEC EDGAR XBRL API** — 10-K annual and 10-Q quarterly filings, free with no API key
+- **Yahoo Finance** (`yfinance`) — live market cap and share price
+- Companies covered: AAPL, MSFT, GOOGL, META, AMZN, NVDA, TSLA, JPM, GS, BAC, JNJ, PFE, UNH, XOM, CVX, WMT, MCD, and 38 more across Technology, Finance, Healthcare, Energy, Retail, Industrial, and Telecom
 
-## Data Source
+## 🛠️ Built with
 
-[SEC EDGAR XBRL API](https://www.sec.gov/cgi-bin/browse-edgar) — free, no API key required. Pulls `us-gaap` facts (revenue, net income, operating income) from 10-K and 10-Q filings.
+- **Ingestion** — Python, requests, yfinance
+- **Warehouse** — DuckDB (local) / MotherDuck (cloud)
+- **Transformation** — dbt Core with staging → mart layering
+- **Orchestration** — Apache Airflow (local) / GitHub Actions (cloud, weekly schedule)
+- **Frontend** — Streamlit, Plotly
 
-Companies covered: AAPL, MSFT, GOOGL, META, AMZN, NVDA, TSLA, JPM, GS, BAC, JNJ, PFE, UNH, XOM, CVX, WMT, MCD, BA, V, MA
-
-## LTM Formula
-
-Standard investment banking LTM calculation:
+## 🏗️ Architecture
 
 ```
-LTM = Most Recent Annual (10-K)
-    + Current YTD Quarter (10-Q)
-    − Prior Year Same Period YTD (10-Q)
+SEC EDGAR API + Yahoo Finance
+          │
+          ▼
+   ingest_sec.py
+   ingest_market_cap.py
+          │
+          ▼
+   DuckDB / MotherDuck (raw schema)
+          │
+          ▼
+        dbt
+   staging/ → marts/
+   (LTM formula, margins, multiples, percentiles)
+          │
+          ▼
+   Streamlit dashboard
 ```
 
-Implemented in `vc_dbt/models/marts/mart_ltm_comps.sql`.
+## 🚀 Running locally
 
-## Setup
-
-**1. Install dependencies**
 ```bash
 pip install -r requirements.txt
-```
-
-**2. Configure dbt profile**
-
-Copy `vc_dbt/profiles.yml.example` to `vc_dbt/profiles.yml` and update the path:
-```bash
 cp vc_dbt/profiles.yml.example vc_dbt/profiles.yml
-```
-Edit `vc_dbt/profiles.yml` and set `path` to the absolute path where you want the DuckDB file created.
+# edit profiles.yml and set path to your local .duckdb file
 
-**3. Ingest data**
-```bash
 python ingest_sec.py
-```
-
-**4. Run dbt transformations**
-```bash
-cd vc_dbt
-dbt run
-dbt test
-```
-
-**5. Launch the dashboard**
-```bash
+python ingest_market_cap.py
+cd vc_dbt && dbt run && cd ..
 streamlit run app.py
 ```
 
-## Automated Scheduling (Airflow)
+## ☁️ Deployment
 
-To run the pipeline automatically every week via Airflow + Docker:
+Deployed with MotherDuck (cloud DuckDB) + Streamlit Community Cloud. GitHub Actions runs the full pipeline every Monday at 8am UTC — no manual intervention required.
 
-```bash
-cd airflow
-docker-compose up -d
-```
+## 🧑‍💻 Author
 
-Then open [http://localhost:8080](http://localhost:8080) (admin / admin). The `vc_pipeline` DAG runs `@weekly` — trigger it manually first to confirm everything works, then leave it running.
-
-> Note: Docker Desktop must be running on your machine for the scheduled runs to execute.
+Built by Dylan Dsouza.
