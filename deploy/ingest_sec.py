@@ -145,7 +145,9 @@ df_annual    = pd.DataFrame(annual_records)
 df_quarterly = pd.DataFrame(quarterly_records)
 
 token = os.environ["MOTHERDUCK_TOKEN"]
-con = duckdb.connect(f"md:vc_pipeline?motherduck_token={token}")
+con = duckdb.connect(f"md:?motherduck_token={token}")
+con.execute("CREATE DATABASE IF NOT EXISTS vc_pipeline")
+con.execute("USE vc_pipeline")
 con.execute("CREATE SCHEMA IF NOT EXISTS raw")
 con.execute("CREATE OR REPLACE TABLE raw.sec_financials AS SELECT * FROM df_annual")
 con.execute("CREATE OR REPLACE TABLE raw.sec_quarterly  AS SELECT * FROM df_quarterly")

@@ -34,7 +34,9 @@ df = pd.DataFrame(records)
 print(f"\n{df['market_cap'].notna().sum()}/{len(TICKERS)} companies loaded")
 
 token = os.environ["MOTHERDUCK_TOKEN"]
-con = duckdb.connect(f"md:vc_pipeline?motherduck_token={token}")
+con = duckdb.connect(f"md:?motherduck_token={token}")
+con.execute("CREATE DATABASE IF NOT EXISTS vc_pipeline")
+con.execute("USE vc_pipeline")
 con.execute("CREATE OR REPLACE TABLE raw.market_cap AS SELECT * FROM df")
 con.close()
 print("Loaded into MotherDuck raw.market_cap")
