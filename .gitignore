@@ -1,0 +1,29 @@
+# DuckDB — generated at runtime
+*.duckdb
+
+# dbt generated
+vc_dbt/target/
+vc_dbt/logs/
+vc_dbt/dbt_packages/
+
+# dbt profiles contain local paths — each dev sets their own
+vc_dbt/profiles.yml
+vc_dbt/.user.yml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Credentials — never commit
+*.json
+.env
+
+# Logs and output
+logs/
+output/
+
+# OS
+.DS_Store
+Thumbs.db

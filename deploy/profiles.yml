@@ -1,0 +1,7 @@
+vc_dbt:
+  target: motherduck
+  outputs:
+    motherduck:
+      type: duckdb
+      path: "md:vc_pipeline"
+      token: "{{ env_var('MOTHERDUCK_TOKEN') }}"

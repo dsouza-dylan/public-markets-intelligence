@@ -1,0 +1,39 @@
+name: Weekly Pipeline
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'   # Every Monday at 8am UTC
+  workflow_dispatch:        # Also lets you trigger manually from GitHub UI
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r deploy/requirements.txt
+
+      - name: Ingest SEC data
+        env:
+          MOTHERDUCK_TOKEN: ${{ secrets.MOTHERDUCK_TOKEN }}
+        run: python deploy/ingest_sec.py
+
+      - name: Ingest market cap data
+        env:
+          MOTHERDUCK_TOKEN: ${{ secrets.MOTHERDUCK_TOKEN }}
+        run: python deploy/ingest_market_cap.py
+
+      - name: Run dbt
+        env:
+          MOTHERDUCK_TOKEN: ${{ secrets.MOTHERDUCK_TOKEN }}
+        run: |
+          cd vc_dbt
+          dbt run --profiles-dir ../deploy --project-dir .

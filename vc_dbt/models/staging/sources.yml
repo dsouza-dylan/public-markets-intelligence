@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: sec_financials
+      - name: sec_quarterly
+      - name: market_cap

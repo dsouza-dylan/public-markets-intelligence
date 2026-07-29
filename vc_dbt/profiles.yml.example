@@ -1,0 +1,6 @@
+vc_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: /absolute/path/to/vc_pipeline.duckdb
